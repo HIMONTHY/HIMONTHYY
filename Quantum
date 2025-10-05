@@ -1,112 +1,31 @@
-local gameId = game.GameId
+local XenoSupportedGame = game.GameId == 3150475059 or game.GameId == 4931927012
 
-if gameId == 8558141897 then
+if (not hookfunction or not hookmetamethod) and not XenoSupportedGame then
+    game:GetService("Players").LocalPlayer:Kick('Your executor is not supported')
+    return
+end
 
-   loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/81f3e84e16a62b84441a1eaa460a504b.lua"))()
-    -- Flag Football
+if not script_key then
+	game:GetService("Players").LocalPlayer:Kick("Tyrant | Please make sure you include the script_key part ABOVE the loadstring, otherwise Luarmor will not be able to recognize that you bought.")
+	return
+end
 
-elseif gameId == 14839650434 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/5f10041b7fead69465c34e17c8471b17.lua"))()
-    -- print("WiiHub Football Fusion 2 loaded successfully")
-
-elseif gameId == 14839650434 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/50bf4691053b6fd86fa8868f53d07cb5.lua"))()
-    -- Fallen Survival
-    
-elseif gameId == 2766122154 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e4c12941b68449b632c3771985a2a5bb.lua"))()
-    -- print("WiiHub Football Duels loaded successfully")
-
-elseif gameId == 4293374620 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/ab8a21d5e74dee443346c053737d028f.lua"))()
-    -- super league soccer
-
-elseif gameId == 4851783408 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/196e58b941d60486a1168a9dcab9dcb8.lua"))()
-    -- real futball
-
-elseif gameId == 3032132418 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/c6ff23246d50591fa66a2e6e44cb717f.lua"))()
-    -- HCBB
-
-elseif gameId == 601130232 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/5a326525c3c96db44069e25411625c75.lua"))()
-    -- print("WiiHub Bee Swarm Simulator loaded successfully")
-
-elseif gameId == 4777817887 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/1e73a36c1064974260e9025438d496c1.lua"))()
-    -- print("WiiHub BladeBall loaded successfully")
-
-elseif gameId == 5166944221 then
-
-    game:GetService("Players").LocalPlayer:Kick("WiiHub is no longer supported on deathball.")
-    -- DeathBall
-
-elseif gameId == 88070565 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/4759fffc1680a8e44a888d41ad7dced3.lua"))()
-    -- print("WiiHub bloxburg loaded successfully")
-
---[[elseif gameId == 111958650 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e289dedbe727c48af275692ba9066a4f.lua"))()
-    -- print("WiiHub Arsenal loaded successfully")]]
-
---[[elseif gameId == 2382284116 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/75991987cefa5f24e2fc72de1873eb98.lua"))()
-    -- print("WiiHub No Scope Arcade loaded successfully")]]
-
-elseif gameId == 2249486280 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/93bd9f8ccfa396a3f2ca7fb50f091b21.lua"))()
-    -- print("WiiHub Auto 3s loaded successfully")
-
-elseif gameId == 2618778158 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/93bd9f8ccfa396a3f2ca7fb50f091b21.lua"))()
-    -- print("WiiHub Auto 3s loaded successfully")
-
-elseif gameId == 184199275 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/515a5cac62850e488490d41ab12fa73e.lua"))()
-    print("WiiHub UF loaded successfully")
-
-elseif gameId == 4363131662 then
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b6fb75a5a9a8c69b316cab201e9e3e0d.lua"))()
-    print("WiiHub Worm2048 loaded successfully")
-
-elseif gameId == 4476467139 then
-    for k,v in pairs(getgc(true)) do
-    	if pcall(function() return rawget(v,"indexInstance") end) and type(rawget(v,"indexInstance")) == "table" and  (rawget(v,"indexInstance"))[1] == "kick" then
-    		v.tvk = {"kick",function() return game.Workspace:WaitForChild("") end}
-    	end
-     end
-
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/56821685103fc947edb56b02e6b2553a.lua"))()
-    print("WiiHub HeadTap loaded successfully")
-
---[[elseif gameId == 111958650 then
-
-loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/56821685103fc947edb56b02e6b2553a.lua"))()
-print("WiiHub Arsenal loaded successfully")
-
-elseif gameId == 1187091887 then
-
-loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/56821685103fc947edb56b02e6b2553a.lua"))()
-print("WiiHub Weaponry loaded successfully")]]
-
+if game.GameId == 3150475059 then
+     if hookfunction and hookmetamethod then
+	loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/ef78e0cdea760494cc1cd2ecf379c808.lua"))()
+     else
+	loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b5eb5ab4e62fa3229a5dfb089cf220af.lua"))()
+     end -- FF2
+elseif game.GameId == 4931927012 then
+     loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/bac6b27f68fb8bc67333e22590684414.lua"))() -- Basketball Legends
+elseif game.GameId == 6931042565 then
+     loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b0bce84f55e1280b9332682da0514879.lua"))() -- Volleyball Legends
+elseif game.GameId == 3645347821 then
+     loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/44522f2745666ad4fc2311604698c8e4.lua"))() -- BIG Paintball 2
+elseif game.GameId == 184199275 then
+      loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e2a1945ebb123c7dc6bd8d2f8a1ac197.lua"))() -- Universe Football
+elseif game.GameId == 8558141897 then
+	  loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/81f3e84e16a62b84441a1eaa460a504b.lua"))() -- Flag Football
 else
-    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/2dc6d9308b5e44676616a6b3996eae6a.lua"))()
-    --print("WiiHub Universal")
-
+     game:GetService("Players").LocalPlayer:Kick("Tyrant | Game currently unsupported. Check the Supported-Games Channel for supported games.")
 end
