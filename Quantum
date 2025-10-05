@@ -1,6 +1,6 @@
 local gameId = game.GameId
 
-if gameId == 99588440661442 then
+if gameId == 8558141897 then
 
    loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/81f3e84e16a62b84441a1eaa460a504b.lua"))()
     -- Flag Football
