@@ -1,0 +1,1598 @@
+--[[
+		Example Compkiller UI
+	
+	Author: 4lpaca
+	
+	Press Left Alt to open / close
+]]
+
+local Compkiller = loadstring(game:HttpGet("https://raw.githubusercontent.com/HIMONTHY/HIMONTHYY/main/YO"))();
+
+
+-- Create Notification --
+local Notifier = Compkiller.newNotify();
+
+-- Create Config Mamager --
+local ConfigManager = Compkiller:ConfigManager({
+	Directory = "Compkiller-UI",
+	Config = "Example-Configs"
+});
+
+-- Loading UI (Icon <string> , Duration <number>) --
+Compkiller:Loader("rbxassetid://110316309667867" , 1.5).yield();
+
+-- Creating Window --
+local MenuKey = "LeftAlt";
+
+local Window = Compkiller.new({
+	Name = "Quantum",
+	Keybind = MenuKey,
+	Logo = "rbxassetid://110316309667867",
+	Scale = Compkiller.Scale.Window,
+	TextSize = 15,
+});
+
+-- User Setting --
+
+local UserSettings = Window.UserSettings:Create();
+
+-- Highlight Color (Kept Green from previous request)
+UserSettings:AddColorPicker({
+	Name = "Menu Color",
+	Default = Color3.fromRGB(0, 255, 0), -- FIXED: Replaced U+00A0 with standard space after 0
+	Callback = function(f)
+		Compkiller.Colors.Highlight = f;
+		Compkiller:RefreshCurrentColor();
+	end,
+});
+
+UserSettings:AddKeybind({
+	Name = "Menu Key",
+	Default = MenuKey,
+	Callback = function(f)
+		MenuKey = f;
+		Window:SetMenuKey(MenuKey)
+	end,
+});
+
+UserSettings:AddDropdown({
+	Name = "Menu Language",
+	Values = {"English","Russian","Chinese"},
+	Default = "English",
+	Callback = print
+});
+
+UserSettings:AddDropdown({
+	Name = "Menu Theme",
+	Values = {
+		"Default",
+		"Dark Green",
+		"Dark Blue",
+		"Purple Rose",
+		"Skeet"
+	},
+	Default = "Default",
+	Callback = function(f)
+		Compkiller:SetTheme(f)
+	end,
+});
+
+UserSettings:AddDropdown({
+	Name = "Visible Widgets",
+	Values = {"Watermark","Keybinds","Double Tab"},
+	Multi = true,
+	Default = {"Watermark"},
+	Callback = print
+});
+
+-- Notification --
+Notifier.new({
+	Title = "Notification",
+	Content = "Thank you for use this script!",
+	Duration = 10,
+	Icon = "rbxassetid://110316309667867"
+});
+
+-- Watermark --
+local Watermark = Window:Watermark();
+
+Watermark:AddText({
+	Icon = "user",
+	Text = "Glockso",
+});
+
+Watermark:AddText({
+	Icon = "clock",
+	Text = Compkiller:GetDate(),
+});
+
+local Time = Watermark:AddText({
+	Icon = "timer",
+	Text = "TIME",
+});
+
+task.spawn(function()
+	while true do task.wait()
+		Time:SetText(Compkiller:GetTimeNow());
+	end
+end)
+
+Watermark:AddText({
+	Icon = "server",
+	Text = Compkiller.Version,
+});
+
+--------------------------------------------------
+-- ALL FEATURE LOGIC - Copied from MacLib Script
+--------------------------------------------------
+
+local player = game.Players.LocalPlayer
+local rs = game:GetService("RunService")
+
+-- Divine-Lite Magnet Variables
+local magnetRange = 12
+local catchEnabled = false
+local activeBalls = {}
+
+-- Jump Power Variables
+local jumpPowerEnabled = false -- Used for RCFA, NFA, etc (Standard JumpPower manipulation)
+local currentJumpPower = 50
+
+-- Auto-Tuck Variables
+local autoTuckEnabled = false
+local tuckTriggered = false 
+local lastFootball = nil
+local heartbeatConnection = nil
+local autoTuckDelay = 0.5 
+
+-- Auto Catch Variables
+local autoCatchEnabled = false
+local distanceThreshold = 4
+
+-- Auto Swat Variables
+local autoSwatEnabled = false
+local swatDistanceThreshold = 4
+
+-- Walk Speed Variables
+local walkSpeedEnabled = false
+local currentWalkSpeed = 16
+
+-- OCFA Magnet Variables
+local ocfaMagnetEnabled = false
+local ocfaMagnetRange = 2
+
+--------------------------------------------------
+-- FLAG FOOTBALL JUMP HEIGHT LOGIC (NEW)
+--------------------------------------------------
+
+local jumpTable = {
+	{ jumpPower = 50, jumpHeight = 7.20 }, { jumpPower = 51, jumpHeight = 7.49 },
+	{ jumpPower = 52, jumpHeight = 7.79 }, { jumpPower = 53, jumpHeight = 8.09 },
+	{ jumpPower = 54, jumpHeight = 8.40 }, { jumpPower = 55, jumpHeight = 8.71 },
+	{ jumpPower = 56, jumpHeight = 9.03 }, { jumpPower = 57, jumpHeight = 9.35 },
+	{ jumpPower = 58, jumpHeight = 9.68 }, { jumpPower = 59, jumpHeight = 10.01 },
+	{ jumpPower = 60, jumpHeight = 10.37 }, { jumpPower = 61, jumpHeight = 10.72 },
+	{ jumpPower = 62, jumpHeight = 11.08 }, { jumpPower = 63, jumpHeight = 11.44 },
+	{ jumpPower = 64, jumpHeight = 11.81 }, { jumpPower = 65, jumpHeight = 12.19 },
+	{ jumpPower = 66, jumpHeight = 12.57 }, { jumpPower = 67, jumpHeight = 12.96 },
+	{ jumpPower = 68, jumpHeight = 13.36 }, { jumpPower = 69, jumpHeight = 13.76 },
+	{ jumpPower = 70, jumpHeight = 14.18 }, { jumpPower = 71, jumpHeight = 14.60 },
+	{ jumpPower = 72, jumpHeight = 15.02 }, { jumpPower = 73, jumpHeight = 15.45 },
+	{ jumpPower = 74, jumpHeight = 15.89 }, { jumpPower = 75, jumpHeight = 16.34 },
+	{ jumpPower = 76, jumpHeight = 16.79 }, { jumpPower = 77, jumpHeight = 17.25 },
+	{ jumpPower = 78, jumpHeight = 17.72 }, { jumpPower = 79, jumpHeight = 18.19 },
+	{ jumpPower = 80, jumpHeight = 18.67 }, { jumpPower = 81, jumpHeight = 19.16 },
+	{ jumpPower = 82, jumpHeight = 19.66 }, { jumpPower = 83, jumpHeight = 20.16 },
+	{ jumpPower = 84, jumpHeight = 20.68 }, { jumpPower = 85, jumpHeight = 21.20 },
+	{ jumpPower = 86, jumpHeight = 21.72 }, { jumpPower = 87, jumpHeight = 22.26 },
+	{ jumpPower = 88, jumpHeight = 22.80 }, { jumpPower = 89, jumpHeight = 23.35 },
+	{ jumpPower = 90, jumpHeight = 23.90 }, { jumpPower = 91, jumpHeight = 24.47 },
+	{ jumpPower = 92, jumpHeight = 25.04 }, { jumpPower = 93, jumpHeight = 25.62 },
+	{ jumpPower = 94, jumpHeight = 26.21 }, { jumpPower = 95, jumpHeight = 26.81 },
+	{ jumpPower = 96, jumpHeight = 27.41 }, { jumpPower = 97, jumpHeight = 28.03 },
+	{ jumpPower = 98, jumpHeight = 28.65 }, { jumpPower = 99, jumpHeight = 29.28 },
+	{ jumpPower = 100, jumpHeight = 28.80 } -- Note: 100 jump power is 28.80
+}
+
+local function lerp(x, x0, y0, x1, y1)
+	return y0 + (y1 - y0) * ((x - x0) / (x1 - x0))
+end
+
+local function getJumpHeight(jp)
+	if jp <= jumpTable[1].jumpPower then
+		return jumpTable[1].jumpHeight
+	elseif jp >= jumpTable[#jumpTable].jumpPower then
+		return jumpTable[#jumpTable].jumpHeight
+	end
+	for i = 1, #jumpTable - 1 do
+		local a, b = jumpTable[i], jumpTable[i+1]
+		if jp >= a.jumpPower and jp <= b.jumpPower then
+			return lerp(jp, a.jumpPower, a.jumpHeight, b.jumpPower, b.jumpHeight)
+		end
+	end
+    return 7.2 -- Default to the minimum if calculation fails
+end
+
+local jumpHeightEnabled = false -- New variable for FLAG jump power
+local restoreDefaults = { useJumpPower = nil, jumpPower = nil, jumpHeight = nil }
+local jumpConn
+
+local function captureDefaults(h)
+	if restoreDefaults.useJumpPower == nil then
+		restoreDefaults.useJumpPower = h.UseJumpPower
+		restoreDefaults.jumpPower   = h.JumpPower
+		restoreDefaults.jumpHeight  = h.JumpHeight
+	end
+end
+
+local function applyJump(h)
+	if not jumpHeightEnabled then return end
+	pcall(function()
+		h.UseJumpPower = false
+		h.JumpHeight   = getJumpHeight(currentJumpPower)
+	end)
+end
+
+local function enableJump()
+	local char = player.Character
+	if not char then return end
+	local h = char:FindFirstChildOfClass("Humanoid")
+	if not h then return end
+	captureDefaults(h)
+	applyJump(h)
+	if jumpConn then jumpConn:Disconnect() end
+	jumpConn = rs.Heartbeat:Connect(function()
+		local hh = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if hh then applyJump(hh) end
+	end)
+end
+
+local function disableJump()
+	if jumpConn then jumpConn:Disconnect() jumpConn = nil end
+	local char = player.Character
+	if not char then return end
+	local h = char:FindFirstChildOfClass("Humanoid")
+	if not h then return end
+	pcall(function()
+		if restoreDefaults.useJumpPower ~= nil then h.UseJumpPower = restoreDefaults.useJumpPower end
+		if restoreDefaults.jumpPower   ~= nil then h.JumpPower   = restoreDefaults.jumpPower   end
+		if restoreDefaults.jumpHeight  ~= nil then h.JumpHeight  = restoreDefaults.jumpHeight  end
+	end)
+end
+
+player.CharacterAdded:Connect(function(char)
+	local h = char:WaitForChild("Humanoid")
+	-- Reset defaults on character respawn
+	restoreDefaults = { useJumpPower = nil, jumpPower = nil, jumpHeight = nil } 
+	
+    -- Re-enable FLAG jump logic if currently enabled
+    if jumpHeightEnabled then
+		captureDefaults(h); 
+        enableJump()
+	end
+    
+    -- Ensure standard jump logic is applied if that's active for non-FLAG tabs
+    if jumpPowerEnabled and not jumpHeightEnabled then 
+        h.JumpPower = currentJumpPower
+    end
+end)
+--------------------------------------------------
+-- Divine-Lite Magnet Functions/Logic
+--------------------------------------------------
+
+local function isBall(obj)
+	if not obj:IsA("BasePart") then return false end
+	if obj.Anchored then return false end
+	local n = obj.Name:lower()
+	return n:find("ball") or n:find("football") or n:find("handle")
+end
+
+workspace.ChildAdded:Connect(function(obj)
+	if isBall(obj) then activeBalls[obj] = true end
+end)
+
+workspace.ChildRemoved:Connect(function(obj)
+	if activeBalls[obj] then activeBalls[obj] = nil end
+end)
+
+local function getArms(char)
+	local l = char:FindFirstChild("Left Arm") or char:FindFirstChild("LeftHand") or char:FindFirstChild("LeftLowerArm") or char:FindFirstChild("LeftUpperArm")
+	local r = char:FindFirstChild("Right Arm") or char:FindFirstChild("RightHand") or char:FindFirstChild("RightLowerArm") or char:FindFirstChild("RightUpperArm")
+	return l, r
+end
+
+local function magBall(ball)
+	if not catchEnabled then return end
+	local char = player.Character
+	if not char then return end
+
+	local left, right = getArms(char)
+	if not left or not right then return end
+
+	for i = 1, 4 do
+		firetouchinterest(left, ball, 0)
+		firetouchinterest(right, ball, 0)
+		task.wait()
+		firetouchinterest(left, ball, 1)
+		firetouchinterest(right, ball, 1)
+		task.wait()
+	end
+end
+
+rs.Stepped:Connect(function()
+	if not catchEnabled then return end
+
+	local char = player.Character
+	if not char then return end
+
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	for ball in pairs(activeBalls) do
+		if ball.Parent and not ball.Anchored then
+			if (root.Position - ball.Position).Magnitude <= magnetRange then
+				magBall(ball)
+			end
+		end
+	end
+end)
+
+--------------------------------------------------
+-- Standard Jump Power Logic (For RCFA, NFA, RFL, etc.)
+--------------------------------------------------
+
+local function onCharacterAddedJumpPower(character)
+	local hum = character:WaitForChild("Humanoid")
+	hum:GetPropertyChangedSignal("JumpPower"):Connect(function()
+		-- Only apply if standard jumpPowerEnabled is true AND the FLAG height mode is NOT active
+		if jumpPowerEnabled and not jumpHeightEnabled then 
+            hum.JumpPower = currentJumpPower 
+        end
+	end)
+end
+
+if player.Character then onCharacterAddedJumpPower(player.Character) end
+player.CharacterAdded:Connect(onCharacterAddedJumpPower)
+
+rs.Stepped:Connect(function()
+	local char = player.Character
+	if char and not jumpHeightEnabled then -- Check if FLAG mode is NOT active
+		char.Humanoid.JumpPower = jumpPowerEnabled and currentJumpPower or 50
+	end
+end)
+
+--------------------------------------------------
+-- STANDARD Auto-Tuck Logic (Delay BEFORE tuck)
+--------------------------------------------------
+
+local function performTuck(football)
+	if not autoTuckEnabled or tuckTriggered then return end
+
+	tuckTriggered = true -- Set lock immediately to stop the heartbeat loop from triggering another one
+
+	task.spawn(function()
+		
+		-- WAIT THE DELAY BEFORE TUCKING
+		task.wait(autoTuckDelay) 
+
+		local args = { [1] = { [1] = "Tuck" } }
+
+		local handle =
+			football:FindFirstChildWhichIsA("BasePart")
+			or football:FindFirstChild("Handle")
+
+		if handle and handle:FindFirstChild("RemoteEvent") then
+			handle.RemoteEvent:FireServer(unpack(args))
+		end
+		
+		-- The tuck is completed. The tuckTriggered flag remains true until
+		-- detectFootball sees that the football is no longer equipped.
+	end)
+end
+
+local function detectFootball(char)
+	if heartbeatConnection then
+		heartbeatConnection:Disconnect()
+	end
+
+	heartbeatConnection = rs.Heartbeat:Connect(function()
+		if not autoTuckEnabled then 
+			tuckTriggered = false -- Ensure reset if user turns off toggle
+			return 
+		end
+
+		local foundFootball = nil
+
+		for _, obj in ipairs(char:GetChildren()) do
+			local part = obj:FindFirstChildWhichIsA("BasePart")
+			if part and part:FindFirstChild("RemoteEvent") then
+				foundFootball = obj
+				break
+			end
+		end
+
+		if foundFootball then
+			-- If we have the ball and the tuck sequence hasn't started, start it
+			if not tuckTriggered then
+				performTuck(foundFootball)
+			end
+		else
+			-- We lost the ball. Reset the flag to allow a new sequence next time we grab it.
+			tuckTriggered = false
+			lastFootball = nil
+		end
+	end)
+end
+
+local function setupTuck(char)
+	tuckTriggered = false
+	lastFootball = nil
+	detectFootball(char)
+end
+
+if player.Character then setupTuck(player.Character) end
+player.CharacterAdded:Connect(setupTuck)
+
+--------------------------------------------------
+-- Auto Catch Logic
+--------------------------------------------------
+
+local function checkProximity()
+	if not autoCatchEnabled then return end
+	local char = player.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+	for _, football in pairs(workspace:GetChildren()) do
+		if football.Name == "Football" and not football.Anchored then
+			if (football.Position - char.HumanoidRootPart.Position).Magnitude <= distanceThreshold then
+				local hit = char:FindFirstChild("Hitbox")
+				if hit and hit:FindFirstChild("RemoteEvent") then
+					hit.RemoteEvent:FireServer("catch")
+				end
+			end
+		end
+	end
+end
+
+rs.RenderStepped:Connect(checkProximity)
+
+--------------------------------------------------
+-- Auto Swat Logic
+--------------------------------------------------
+
+local function checkSwat()
+	if not autoSwatEnabled then return end
+	local char = player.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+	for _, football in pairs(workspace:GetChildren()) do
+		if football.Name == "Football" and not football.Anchored then
+			if (football.Position - char.HumanoidRootPart.Position).Magnitude <= swatDistanceThreshold then
+				local hit = char:FindFirstChild("Hitbox")
+				if hit and hit:FindFirstChild("RemoteEvent") then
+					-- NOTE: Assuming this remote call is correct for swatting
+					hit.RemoteEvent:FireServer({{"pbu", Vector3.new(1.8,1.3,4.6)}})
+				end
+			end
+		end
+	end
+end
+
+rs.RenderStepped:Connect(checkSwat)
+
+--------------------------------------------------
+-- Walk Speed Logic (Handled in its UI callback)
+--------------------------------------------------
+
+local function onCharacterAddedWalkSpeed(character)
+	local hum = character:WaitForChild("Humanoid")
+	hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+		if walkSpeedEnabled then hum.WalkSpeed = currentWalkSpeed end
+	end)
+end
+
+if player.Character then onCharacterAddedWalkSpeed(player.Character) end
+player.CharacterAdded:Connect(onCharacterAddedWalkSpeed)
+
+--------------------------------------------------
+-- OCFA Magnet Logic
+--------------------------------------------------
+
+local function ocfaMagBall(ball)
+	local char = player.Character
+	if not char then return end
+
+	firetouchinterest(char["Left Arm"], ball, 0)
+	firetouchinterest(char["Right Arm"], ball, 0)
+	task.wait()
+	firetouchinterest(char["Left Arm"], ball, 1)
+	firetouchinterest(char["Right Arm"], ball, 1)
+end
+
+rs.Stepped:Connect(function()
+	if not ocfaMagnetEnabled then return end
+	local char = player.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+	for _, v in pairs(workspace:GetChildren()) do
+		if (v.Name == "Handle" or v.Name == "Football") and not v.Anchored then
+			if (char.HumanoidRootPart.Position - v.Position).Magnitude <= ocfaMagnetRange then
+				ocfaMagBall(v)
+			end
+		end
+	end
+end)
+
+--------------------------------------------------
+-- JUCO Auto Tuck Logic (with Delay)
+--------------------------------------------------
+local jucoTuckConnection_Added
+local jucoTuckConnection_Removed
+local jucoTuckLoop
+local jucoIsTucking = false
+local jucoAutoTuckEnabled = false
+local jucoAutoTuckDelay = 0.5 
+local jucoPlayer = game:GetService("Players").LocalPlayer
+local jucoTuckTask = nil 
+
+-- Function to check if an item is a handle, football tool, or normal football item (adjust as per your game's item names or tags)
+local function jucoIsHandleOrFootballItem(item)
+    -- Replace with actual check for handle, football tool, or normal football item
+    return item.Name == "Handle"
+        or (item.Name == "Football" and item:IsA("Model"))  -- Assuming Football is a Model
+        or (item.Name == "Football" and item:IsA("Part"))   -- Assuming Football is a Part
+end
+
+-- Function to trigger the "StopTuck" action
+local function jucoStopTuck()
+    if jucoTuckTask then task.cancel(jucoTuckTask) jucoTuckTask = nil end
+    if not jucoPlayer.Character or not jucoPlayer.Character:FindFirstChild("Jersey") then jucoIsTucking = false return end
+    local jersey = jucoPlayer.Character:FindFirstChild("Jersey")
+    if not jersey or not jersey:FindFirstChild("Event") then jucoIsTucking = false return end
+    local event = jersey:FindFirstChild("Event")
+
+    local args = {
+        [1] = {
+            [1] = "StopTuck"
+        }
+    }
+    event:FireServer(unpack(args))
+    jucoIsTucking = false  -- Update state to indicate tucking has stopped
+end
+
+-- Function to trigger the "Tuck" action
+local function jucoStartTuck()
+    if not jucoPlayer.Character or not jucoPlayer.Character:FindFirstChild("Jersey") then jucoIsTucking = false return end
+    local jersey = jucoPlayer.Character:FindFirstChild("Jersey")
+    if not jersey or not jersey:FindFirstChild("Event") then jucoIsTucking = false return end
+    local event = jersey:FindFirstChild("Event")
+
+    local args = {
+        [1] = {
+            [1] = "Tuck"
+        }
+    }
+    event:FireServer(unpack(args))
+    jucoIsTucking = true  -- Update state to indicate tucking has started
+    jucoTuckTask = nil -- Clear task once executed
+end
+
+-- Function to monitor player's tools and items
+local function jucoMonitorPlayerItems()
+    if not jucoAutoTuckEnabled or not jucoPlayer.Character then
+        if jucoIsTucking then jucoStopTuck() end
+        return 
+    end
+
+    local hasHandleOrFootballItem = false
+    
+    -- Check already equipped tools and items
+    for _, item in ipairs(jucoPlayer.Character:GetChildren()) do
+        if jucoIsHandleOrFootballItem(item) then
+            hasHandleOrFootballItem = true
+            break
+        end
+    end
+    
+    -- Determine if tuck action should be started or stopped
+    if hasHandleOrFootballItem and jucoAutoTuckEnabled then
+        if not jucoIsTucking and not jucoTuckTask then
+            -- Ball held, AutoTuck enabled, not already tucking, and no delay task running
+            jucoTuckTask = task.delay(jucoAutoTuckDelay, jucoStartTuck)
+        end
+    else
+        -- Ball dropped or feature disabled
+        if jucoIsTucking or jucoTuckTask then
+            jucoStopTuck()
+        end
+    end
+end
+
+local function jucoToggleMonitoring(enabled)
+    if jucoTuckLoop then task.cancel(jucoTuckLoop) jucoTuckLoop = nil end
+
+    if enabled and jucoPlayer.Character then
+        -- Initial monitor call
+        jucoMonitorPlayerItems()
+
+        -- Run the monitor continuously
+        jucoTuckLoop = task.spawn(function()
+            while jucoPlayer.Parent do
+                task.wait(0.1) -- Run faster than 1 second for better responsiveness
+                jucoMonitorPlayerItems()
+            end
+        end)
+    else
+        jucoStopTuck()
+    end
+end
+
+-- JUCO Auto Tuck initialization/cleanup on character change
+jucoPlayer.CharacterAdded:Connect(function(char)
+    if jucoAutoTuckEnabled then
+        jucoToggleMonitoring(true)
+    end
+end)
+
+--------------------------------------------------
+-- NFA Auto Tuck Logic (New Logic with Delay)
+--------------------------------------------------
+local nfaFootballEquipped = false
+local nfaAutoTuckEnabled = false
+local nfaTuckLoop = nil
+local nfaAutoTuckDelay = 0.1 
+local nfaDelayTask = nil 
+
+local function nfaStartTuck()
+    local TuckEvent = game:GetService("ReplicatedStorage"):FindFirstChild("Tuck")
+    if TuckEvent and TuckEvent:IsA("RemoteEvent") then
+        TuckEvent:FireServer()
+    end
+    nfaFootballEquipped = true
+    nfaDelayTask = nil
+end
+
+local function nfaDetectFootballEquipped()
+    if not nfaAutoTuckEnabled or not player.Character then 
+        if nfaDelayTask then task.cancel(nfaDelayTask) nfaDelayTask = nil end
+        nfaFootballEquipped = false
+        return 
+    end
+
+    -- Check for the 'Football' item in the character
+    local football = player.Character:FindFirstChild("Football")
+    
+    if football then
+        -- Check if football was just equipped and action hasn't been performed/delayed
+        if not nfaFootballEquipped and not nfaDelayTask then
+            -- Start the delay before performing the action (Tuck)
+            nfaDelayTask = task.delay(nfaAutoTuckDelay, nfaStartTuck)
+        end
+    else
+        -- Reset the flag and cancel any pending delay if football is unequipped
+        if nfaDelayTask then task.cancel(nfaDelayTask) nfaDelayTask = nil end
+        nfaFootballEquipped = false
+    end
+end
+
+local function nfaToggleMonitoring(enabled)
+    nfaAutoTuckEnabled = enabled
+    if nfaTuckLoop then task.cancel(nfaTuckLoop) nfaTuckLoop = nil end
+    if nfaDelayTask then task.cancel(nfaDelayTask) nfaDelayTask = nil end
+
+    if enabled then
+        nfaTuckLoop = task.spawn(function()
+            while nfaAutoTuckEnabled and player.Parent do
+                nfaDetectFootballEquipped()
+                task.wait(0.1) -- The requested interval
+            end
+            nfaFootballEquipped = false -- Ensure reset when loop stops
+            if nfaDelayTask then task.cancel(nfaDelayTask) nfaDelayTask = nil end
+        end)
+    else
+        nfaFootballEquipped = false
+    end
+end
+
+--------------------------------------------------
+-- RFL Auto Tuck Logic (New Logic)
+--------------------------------------------------
+local rflFootballEquipped = false
+local rflAutoTuckEnabled = false
+local rflTuckLoop = nil
+local rflAutoTuckDelay = 0.1 -- New variable for RFL delay
+local rflDelayTask = nil -- To track the task.delay
+
+local function rflStartTuck()
+    local football = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Football")
+    if football then
+        local TuckEvent = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):FindFirstChild("Football"):FindFirstChild("Events/Functions"):FindFirstChild("Event")
+        if TuckEvent and TuckEvent:IsA("RemoteEvent") then
+            -- Fire the server event with the specific argument format
+            TuckEvent:FireServer("Tuck")
+        end
+    end
+    rflFootballEquipped = true
+    rflDelayTask = nil
+end
+
+local function rflDetectFootballEquipped()
+    if not rflAutoTuckEnabled or not player.Character then 
+        if rflDelayTask then task.cancel(rflDelayTask) rflDelayTask = nil end
+        rflFootballEquipped = false
+        return 
+    end
+
+    -- Check for the 'Football' item in the character
+    local football = player.Character:FindFirstChild("Football")
+    
+    if football then
+        -- Check if football was just equipped and action hasn't been performed/delayed
+        if not rflFootballEquipped and not rflDelayTask then
+            -- Start the delay before performing the action (Tuck)
+            rflDelayTask = task.delay(rflAutoTuckDelay, rflStartTuck)
+        end
+    else
+        -- Reset the flag and cancel any pending delay if football is unequipped
+        if rflDelayTask then task.cancel(rflDelayTask) rflDelayTask = nil end
+        rflFootballEquipped = false
+    end
+end
+
+local function rflToggleMonitoring(enabled)
+    rflAutoTuckEnabled = enabled
+    if rflTuckLoop then task.cancel(rflTuckLoop) rflTuckLoop = nil end
+    if rflDelayTask then task.cancel(rflDelayTask) rflDelayTask = nil end
+
+    if enabled then
+        rflTuckLoop = task.spawn(function()
+            while rflAutoTuckEnabled and player.Parent do
+                rflDetectFootballEquipped()
+                task.wait(0.1) -- The requested interval
+            end
+            rflFootballEquipped = false -- Ensure reset when loop stops
+            if rflDelayTask then task.cancel(rflDelayTask) rflDelayTask = nil end
+        end)
+    else
+        rflFootballEquipped = false
+    end
+end
+
+--------------------------------------------------
+-- HSFL Auto Tuck Logic (VirtualInputManager 'Q') - UPDATED
+--------------------------------------------------
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local HSFL_autoTuckEnabled = false
+local HSFL_ChildAddedConnection = nil
+
+local function HSFL_checkFootball(char)
+    if not char or not HSFL_autoTuckEnabled then return end
+    for _, child in pairs(char:GetChildren()) do
+        -- Check if the child name contains "football" (case insensitive)
+        if child.Name:lower():find("football") then
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Q, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Q, false, game)
+            break -- Exit the loop once the football is found
+        end
+    end
+end
+
+local function HSFL_setupCharacter(char)
+    -- Disconnect old connection if it exists
+    if HSFL_ChildAddedConnection then
+        HSFL_ChildAddedConnection:Disconnect()
+        HSFL_ChildAddedConnection = nil
+    end
+    
+    -- If enabled, connect the new logic
+    if HSFL_autoTuckEnabled then
+        -- Run an initial check in case the tool is already equipped when feature is toggled on or character spawns
+        HSFL_checkFootball(char)
+        
+        HSFL_ChildAddedConnection = char.ChildAdded:Connect(function()
+            task.wait(0.1) -- Small delay to ensure tool is recognized as requested
+            HSFL_checkFootball(char)
+        end)
+    end
+end
+
+local function HSFL_toggleAutoTuck(enabled)
+    HSFL_autoTuckEnabled = enabled
+    if player.Character then
+        HSFL_setupCharacter(player.Character)
+    end
+end
+
+-- Re-setup logic whenever the character changes
+player.CharacterAdded:Connect(HSFL_setupCharacter)
+if player.Character then HSFL_setupCharacter(player.Character) end
+--------------------------------------------------
+
+
+-- RCFA Feature Duplication Function
+local function addFeaturesToTab(Tab, prefix)
+    
+    local isOCFA = prefix == "OCFA"
+    local isFLAG = prefix == "FLAG" -- Check for FLAG
+    
+	-- LEFT SECTION (Magnet, Jump, Tuck, Swat)
+	local LeftSection = Tab:DrawSection({
+		Name = "Game Controls (" .. prefix .. ")",
+		Position = 'left'
+	})
+
+    -- 1. Mags (Skip for OCFA and FLAG)
+    if not isOCFA then
+        LeftSection:AddToggle({
+            Name = "Mags",
+            Flag = prefix .. "_Magnet_Enable",
+            Default = false,
+            Callback = function(v)
+                catchEnabled = v
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Mags",
+                    Duration = 5,
+                });
+            end,
+        })
+    
+        LeftSection:AddSlider({
+            Name = "Magnet Range",
+            Flag = prefix .. "_Magnet_Range",
+            Min = 1, Max = 30,
+            Default = 12, Round = 0,
+            Callback = function(v) magnetRange = v end,
+        })
+    end
+
+
+	-- 2. Jump Power
+    if isFLAG then
+        -- FLAG: Use JumpHeight logic but display name as "Jump Power"
+        LeftSection:AddToggle({
+            Name = "Jump Power", -- CHANGED NAME HERE
+            Flag = prefix .. "_Jump_Height_Enable",
+            Default = false,
+            Callback = function(v)
+                jumpHeightEnabled = v
+                if v then
+                    enableJump()
+                else
+                    disableJump()
+                end
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Jump Power (Height Logic)", -- Updated notification
+                    Duration = 5,
+                });
+            end,
+        })
+
+        LeftSection:AddSlider({
+            Name = "Jump Power Value", 
+            Flag = prefix .. "_Jump_Power_Value",
+            Min = 50, Max = 100,
+            Default = 50, Round = 0,
+            Callback = function(v) 
+                currentJumpPower = v
+                if jumpHeightEnabled then applyJump(player.Character and player.Character:FindFirstChildOfClass("Humanoid")) end
+            end,
+        })
+    else
+        -- RCFA, NFA, OCFA, etc.: Use standard JumpPower logic
+        LeftSection:AddToggle({
+            Name = "Jump Power",
+            Flag = prefix .. "_Jump_Power_Enable",
+            Default = false,
+            Callback = function(v)
+                jumpPowerEnabled = v
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Jump Power",
+                    Duration = 5,
+                });
+            end,
+        })
+
+        LeftSection:AddSlider({
+            Name = "Jump Power Value",
+            Flag = prefix .. "_Jump_Power_Value",
+            Min = 50, Max = 100,
+            Default = 50, Round = 0,
+            Callback = function(v) currentJumpPower = v end,
+        })
+    end
+	
+	-- 3. Auto Tuck (Conditional based on prefix - Skip for OCFA and FLAG)
+    if not isOCFA and not isFLAG then
+        if prefix == "JUCO" then
+            -- JUCO specific Auto Tuck
+            LeftSection:AddToggle({
+                Name = "Auto Tuck (JUCO)",
+                Flag = prefix .. "_Auto_Tuck_Enable",
+                Default = false,
+                Callback = function(v)
+                    jucoAutoTuckEnabled = v
+                    jucoToggleMonitoring(v)
+                    Notifier.new({
+                        Title = prefix .. " Feature",
+                        Content = (v and "Enabled " or "Disabled ") .. "Auto Tuck (JUCO)",
+                        Duration = 5,
+                    });
+                end
+            })
+    
+            -- JUCO Auto Tuck Delay Slider
+            LeftSection:AddSlider({
+                Name = "Auto Tuck Delay",
+                Flag = prefix .. "_Auto_Tuck_Delay",
+                Min = 0.05,
+                Max = 4.0, 
+                Default = 0.5,
+                Round = 2,
+                Callback = function(v) 
+                    jucoAutoTuckDelay = v
+                end
+            })
+    
+        elseif prefix == "NFA" then
+            -- NFA specific Auto Tuck
+            LeftSection:AddToggle({
+                Name = "Auto Tuck (NFA)",
+                Flag = prefix .. "_Auto_Tuck_Enable",
+                Default = false,
+                Callback = function(v)
+                    nfaAutoTuckEnabled = v
+                    nfaToggleMonitoring(v)
+                    Notifier.new({
+                        Title = prefix .. " Feature",
+                        Content = (v and "Enabled " or "Disabled ") .. "Auto Tuck (NFA)",
+                        Duration = 5,
+                    });
+                end
+            })
+    
+            -- NFA Auto Tuck Delay Slider
+            LeftSection:AddSlider({
+                Name = "Auto Tuck Delay",
+                Flag = prefix .. "_Auto_Tuck_Delay",
+                Min = 0.05,
+                Max = 4.0, 
+                Default = 0.1,
+                Round = 2,
+                Callback = function(v) 
+                    nfaAutoTuckDelay = v
+                end
+            })
+    
+        elseif prefix == "RFL" then
+            -- RFL specific Auto Tuck
+            LeftSection:AddToggle({
+                Name = "Auto Tuck (RFL)",
+                Flag = prefix .. "_Auto_Tuck_Enable",
+                Default = false,
+                Callback = function(v)
+                    rflAutoTuckEnabled = v
+                    rflToggleMonitoring(v)
+                    Notifier.new({
+                        Title = prefix .. " Feature",
+                        Content = (v and "Enabled " or "Disabled ") .. "Auto Tuck (RFL)",
+                        Duration = 5,
+                    });
+                end
+            })
+    
+            -- RFL Auto Tuck Delay Slider
+            LeftSection:AddSlider({
+                Name = "Auto Tuck Delay",
+                Flag = prefix .. "_Auto_Tuck_Delay",
+                Min = 0.05,
+                Max = 4.0, 
+                Default = 0.1,
+                Round = 2,
+                Callback = function(v) 
+                    rflAutoTuckDelay = v
+                end
+            })
+            
+        elseif prefix == "HSFL" then
+            -- HSFL specific Auto Tuck (VIM)
+            LeftSection:AddToggle({
+                Name = "Auto Tuck (HSFL)",
+                Flag = prefix .. "_Auto_Tuck_Enable",
+                Default = false,
+                Callback = function(v)
+                    HSFL_toggleAutoTuck(v)
+                    Notifier.new({
+                        Title = prefix .. " Feature",
+                        Content = (v and "Enabled " or "Disabled ") .. "Auto Tuck (HSFL)",
+                        Duration = 5,
+                    });
+                end
+            })
+            
+        else
+            -- Standard Auto Tuck for all other prefixes (RCFA)
+            LeftSection:AddToggle({
+                Name = "Auto Tuck (RCFA)",
+                Flag = prefix .. "_Auto_Tuck_Enable",
+                Default = false,
+                Callback = function(v)
+                    autoTuckEnabled = v
+                    Notifier.new({
+                        Title = prefix .. " Feature",
+                        Content = (v and "Enabled " or "Disabled ") .. "Auto Tuck",
+                        Duration = 5,
+                    });
+                end
+            })
+    
+            -- Standard Auto Tuck Delay Slider
+            LeftSection:AddSlider({
+                Name = "Auto Tuck Delay",
+                Flag = prefix .. "_Auto_Tuck_Delay",
+                Min = 0.05,
+                Max = 4.0, 
+                Default = 0.5,
+                Round = 2,
+                Callback = function(v) 
+                    autoTuckDelay = v
+                end
+            })
+        end
+    end
+
+
+	-- 4. Auto Swat (Skip for OCFA and FLAG)
+    if not isOCFA and not isFLAG then
+        LeftSection:AddToggle({
+            Name = "Auto Swat",
+            Flag = prefix .. "_Auto_Swat_Enable",
+            Default = false,
+            Callback = function(v)
+                autoSwatEnabled = v
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Auto Swat",
+                    Duration = 5,
+                });
+            end
+        })
+    
+        LeftSection:AddSlider({
+            Name = "Swat Range",
+            Flag = prefix .. "_Swat_Range",
+            Min = 1, Max = 10,
+            Default = 4, Round = 0,
+            Callback = function(v) swatDistanceThreshold = v end
+        })
+    end
+
+	-- 5. OCFA Magnet (Only for OCFA)
+    if isOCFA then
+        LeftSection:AddToggle({
+            Name = "Ocfa Magnet",
+            Flag = prefix .. "_OCFA_Magnet_Enable",
+            Default = false,
+            Callback = function(v)
+                ocfaMagnetEnabled = v
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Ocfa Magnet",
+                    Duration = 5,
+                });
+            end
+        })
+
+        LeftSection:AddSlider({
+            Name = "Ocfa Magnet Range",
+            Flag = prefix .. "_OCFA_Range",
+            Min = 1, Max = 10,
+            Default = 2, Round = 0,
+            Callback = function(v) ocfaMagnetRange = v end
+        })
+    end
+
+
+	-- RIGHT SECTION (Walk Speed, Auto Catch)
+	local RightSection = Tab:DrawSection({
+		Name = (isOCFA and "Movement" or "Movement & Catching (" .. prefix .. ")"),
+		Position = 'right'
+	})
+
+	-- 6. Walk Speed
+	RightSection:AddToggle({
+		Name = "Walk Speed",
+		Flag = prefix .. "_Walk_Speed_Enable",
+		Default = false,
+		Callback = function(v)
+			walkSpeedEnabled = v
+			Notifier.new({
+				Title = prefix .. " Feature",
+				Content = (v and "Enabled " or "Disabled ") .. "Walk Speed",
+				Duration = 5,
+			});
+		end
+	})
+
+	RightSection:AddSlider({
+		Name = "Walk Speed Value",
+		Flag = prefix .. "_Walk_Speed_Value",
+		Min = 16, Max = 100,
+		Default = 16, Round = 0,
+		Callback = function(v) 
+			currentWalkSpeed = v 
+			if walkSpeedEnabled and player.Character then
+				player.Character.Humanoid.WalkSpeed = v
+			end
+		end
+	})
+
+
+	-- 7. Auto Catch (Skip for OCFA and FLAG)
+    if not isOCFA and not isFLAG then
+        RightSection:AddToggle({
+            Name = "Auto Catch",
+            Flag = prefix .. "_Auto_Catch_Enable",
+            Default = false,
+            Callback = function(v)
+                autoCatchEnabled = v
+                Notifier.new({
+                    Title = prefix .. " Feature",
+                    Content = (v and "Enabled " or "Disabled ") .. "Auto Catch",
+                    Duration = 5,
+                });
+            end
+        })
+    
+        RightSection:AddSlider({
+            Name = "Catch Range",
+            Flag = prefix .. "_Catch_Range",
+            Min = 1, Max = 10,
+            Default = 4, Round = 0,
+            Callback = function(v) distanceThreshold = v end
+        })
+    end
+	
+	-- New Exploitation Section for all tabs (RCFA)
+	if prefix == "RCFA" then
+		-- New Section for Exploitation Features in RCFA Tab
+		local ExploitationSection = Tab:DrawSection({
+			Name = "Exploitation",
+			Position = 'right' -- This will place it below the "Movement & Catching" section
+		})
+
+		ExploitationSection:AddToggle({
+			Name = "Anti Cheat Bypass",
+			Flag = "RCFA_Anticheat_Bypass_Enable",
+			Default = false,
+			Callback = function(v)
+				antiCheatEnabled = v
+				
+				if v and not antiCheatInitialized then
+					-- Only set up permanent listeners on first activation
+					player.CharacterAdded:Connect(removeAnticheat)
+					antiCheatInitialized = true
+				end
+
+				-- Always run instantly when toggled ON
+				if v then
+					removeAnticheat() 
+					Notifier.new({
+						Title = "Anti Cheat Bypass",
+						Content = "Attempting to destroy Local Anticheats.",
+						Duration = 5,
+					});
+				else
+					Notifier.new({
+						Title = "Anti Cheat Bypass",
+						Content = "Disabled state recorded. Already destroyed scripts cannot be restored.",
+						Duration = 5,
+					});
+				end
+			end,
+		})
+
+		ExploitationSection:AddParagraph({
+			Title = "Bypass Info",
+			Content = "MUST CLICK!!"
+		})
+	end
+	
+	-- New Exploitation Section for all tabs (NFA)
+	if prefix == "NFA" then
+		-- New Section for Exploitation Features in NFA Tab
+		local ExploitationSectionNFA = Tab:DrawSection({
+			Name = "Exploitation",
+			Position = 'right' -- This will place it below the "Movement & Catching" section
+		})
+
+		ExploitationSectionNFA:AddToggle({
+			Name = "Anti Cheat Bypass",
+			Flag = "NFA_Anticheat_Bypass_Enable",
+			Default = false,
+			Callback = function(v)
+				NFA_AC_Enabled = v
+				
+				if v and not NFA_AC_Initialized then
+					-- Only set up permanent listeners on first activation
+					player.CharacterAdded:Connect(removeAnticheatNFA)
+					NFA_AC_Initialized = true
+				end
+
+				-- Always run instantly when toggled ON
+				if v then
+					removeAnticheatNFA() 
+					Notifier.new({
+						Title = "Anti Cheat Bypass (NFA)",
+						Content = "Attempting to destroy Anticheats.",
+						Duration = 5,
+					});
+				else
+					Notifier.new({
+						Title = "Anti Cheat Bypass (NFA)",
+						Content = "Disabled state recorded.",
+						Duration = 5,
+					});
+				end
+			end,
+		})
+
+		ExploitationSectionNFA:AddParagraph({
+			Title = "Bypass Info",
+			Content = "MUST CLICK!!"
+		})
+	end
+
+	RightSection:AddParagraph({
+		Title = prefix .. " Features",
+		Content = "All core features are available in the " .. prefix .. " tab."
+	})
+end
+
+--------------------------------------------------
+-- RCFA CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "RCFA"
+})
+
+local RCFATab = Window:DrawTab({
+	Name = "RCFA",
+	Icon = "rbxassetid://94591910427004",
+	EnableScrolling = true
+})
+
+addFeaturesToTab(RCFATab, "RCFA")
+
+-- NEW ANTI-CHEAT BYPASS LOGIC AND UI
+
+local antiCheatEnabled = false
+local antiCheatInitialized = false
+local player = game:GetService("Players").LocalPlayer
+
+local function removeAnticheat()
+	if not antiCheatEnabled then return end
+
+	if player and player.Character then
+		for _, v in pairs(player.Character:GetDescendants()) do
+			if v:IsA("LocalScript") and string.lower(v.Name):find("localanticheat") then
+				v:Destroy()
+			end
+		end
+	end
+end
+
+-- 🔁 Loop
+task.spawn(function()
+	while true do
+		task.wait(0.1) -- runs every 1 second
+		removeAnticheat()
+	end
+end)
+
+--------------------------------------------------
+-- NFA CATEGORY
+--------------------------------------------------
+
+local NFA_AC_Enabled = false
+local NFA_AC_Initialized = false
+
+local function removeAnticheatNFA()
+    if not NFA_AC_Enabled then return end
+
+    if player and player.Character then
+        for _, v in pairs(player.Character:GetDescendants()) do
+            -- The user requested logic checking for "anticheat" in the name
+            if v:IsA("LocalScript") and string.lower(v.Name):find("anticheat") then 
+                v:Destroy()
+            end
+        end
+    end
+end
+
+-- 🔁 NFA Loop (Running every 0.1 seconds)
+task.spawn(function()
+	while true do
+		task.wait(0.1) 
+		removeAnticheatNFA()
+	end
+end)
+
+Window:DrawCategory({
+	Name = "High School Football"
+})
+
+local NFATab = Window:DrawTab({
+	Name = "HSFL",
+	Icon = "shield",
+	EnableScrolling = true
+})
+
+addFeaturesToTab(NFATab, "NFA")
+
+--------------------------------------------------
+-- RFL CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "RFL"
+})
+
+local RFLTab = Window:DrawTab({
+	Name = "RFL",
+	Icon = "bullseye",
+	EnableScrolling = true
+})
+
+addFeaturesToTab(RFLTab, "RFL")
+
+
+--------------------------------------------------
+-- FLAG FOOTBALL CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "FLAG FOOTBALL"
+})
+
+local FlagTab = Window:DrawTab({
+	Name = "FLAG FOOTBALL",
+	Icon = "flag",
+	EnableScrolling = true
+})
+
+addFeaturesToTab(FlagTab, "FLAG")
+
+--------------------------------------------------
+-- JUCO CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "JUCO"
+})
+
+local JucoTab = Window:DrawTab({
+	Name = "Juco",
+	Icon = "users",
+	EnableScrolling = true
+})
+
+addFeaturesToTab(JucoTab, "JUCO") 
+
+--------------------------------------------------
+-- HSFL CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "HSFL"
+})
+
+local HSFLTab = Window:DrawTab({
+	Name = "HSFL",
+	Icon = "bolt", 
+	EnableScrolling = true
+})
+
+addFeaturesToTab(HSFLTab, "HSFL") 
+
+--------------------------------------------------
+-- OCFA CATEGORY (MINIMAL FEATURES)
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "OCFA"
+})
+
+local OCFATab = Window:DrawTab({
+	Name = "OCFA",
+	Icon = "map-pin", 
+	EnableScrolling = true
+})
+
+addFeaturesToTab(OCFATab, "OCFA")
+
+--------------------------------------------------
+-- MISC CATEGORY
+--------------------------------------------------
+
+Window:DrawCategory({
+	Name = "Misc"
+});
+
+local SettingTab = Window:DrawTab({
+	Icon = "settings-3",
+	Name = "Settings",
+	Type = "Single",
+	EnableScrolling = true
+});
+
+local ThemeTab = Window:DrawTab({
+	Icon = "paintbrush",
+	Name = "Themes",
+	Type = "Single"
+});
+
+local Settings = SettingTab:DrawSection({
+	Name = "UI Settings",
+});
+
+Settings:AddToggle({
+	Name = "Alway Show Frame",
+	Default = false,
+	Callback = function(v)
+		Window.AlwayShowTab = v;
+	end,
+});
+
+-- Highlight Color (Kept Green)
+Settings:AddColorPicker({
+	Name = "Highlight",
+	Default = Color3.fromRGB(0, 255, 0),
+	Callback = function(v)
+		Compkiller.Colors.Highlight = v;
+		Compkiller:RefreshCurrentColor();
+	end,
+});
+
+-- Toggle Color (Kept Red)
+Settings:AddColorPicker({
+	Name = "Toggle Color",
+	Default = Color3.fromRGB(253, 17, 17),
+	Callback = function(v)
+		Compkiller.Colors.Toggle = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Drop Color",
+	Default = Compkiller.Colors.DropColor,
+	Callback = function(v)
+		Compkiller.Colors.DropColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Risky",
+	Default = Compkiller.Colors.Risky,
+	Callback = function(v)
+		Compkiller.Colors.Risky = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Mouse Enter",
+	Default = Compkiller.Colors.MouseEnter,
+	Callback = function(v)
+		Compkiller.Colors.MouseEnter = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Block Color",
+	Default = Compkiller.Colors.BlockColor,
+	Callback = function(v)
+		Compkiller.Colors.BlockColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Background Color",
+	Default = Compkiller.Colors.BGDBColor,
+	Callback = function(v)
+		Compkiller.Colors.BGDBColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Block Background Color",
+	Default = Compkiller.Colors.BlockBackground,
+	Callback = function(v)
+		Compkiller.Colors.BlockBackground = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Stroke Color",
+	Default = Compkiller.Colors.StrokeColor,
+	Callback = function(v)
+		Compkiller.Colors.StrokeColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "High Stroke Color",
+	Default = Compkiller.Colors.HighStrokeColor,
+	Callback = function(v)
+		Compkiller.Colors.HighStrokeColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Switch Color",
+	Default = Compkiller.Colors.SwitchColor,
+	Callback = function(v)
+		Compkiller.Colors.SwitchColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddColorPicker({
+	Name = "Line Color",
+	Default = Compkiller.Colors.LineColor,
+	Callback = function(v)
+		Compkiller.Colors.LineColor = v;
+		Compkiller:RefreshCurrentColor(v);
+	end,
+});
+
+Settings:AddButton({
+	Name = "Get Theme",
+	Callback = function()
+		print(Compkiller:GetTheme())
+
+		Notifier.new({
+			Title = "Notification",
+			Content = "Copied Them Color to your clipboard",
+			Duration = 5,
+			Icon = "rbxassetid://120245531583106"
+		});
+	end,
+});
+
+ThemeTab:DrawSection({
+	Name = "UI Themes"
+}):AddDropdown({
+	Name = "Select Theme",
+	Default = "Default",
+	Values = {
+		"Default",
+		"Dark Green",
+		"Dark Blue",
+		"Purple Rose",
+		"Skeet"
+	},
+	Callback = function(v)
+		Compkiller:SetTheme(v)
+	end,
+})
+
+-- Creating Config Tab --
+local ConfigUI = Window:DrawConfig({
+	Name = "Config",
+	Icon = "folder",
+	Config = ConfigManager
+});
+
+ConfigUI:Init();
