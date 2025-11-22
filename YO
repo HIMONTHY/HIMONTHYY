@@ -1281,6 +1281,7 @@ Compkiller.FontAwesome = {
 	['bluetooth-b'] = "rbxassetid://96522278309021",
 	bluetooth = "rbxassetid://113081372628241",
 	bolt = "rbxassetid://89858717966393",
+    ['Football'] = "rbxassetid://83080500555400",
 	bomb = "rbxassetid://113184250292244",
 	book = "rbxassetid://134006112957521",
 	['book-open'] = "rbxassetid://109774137257967",
