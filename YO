@@ -368,9 +368,9 @@ local Compkiller = {
 };
 
 Compkiller.Colors = {
-	Highlight = Color3.fromRGB(17, 238, 253),
-	Toggle = Color3.fromRGB(14, 203, 213),
-	Risky = Color3.fromRGB(251, 255, 39),
+	Highlight = Color3.fromRGB(0, 225, 0),
+	Toggle = Color3.fromRGB(0, 225, 0),
+	Risky = Color3.fromRGB(0, 225, 0),
 	BGDBColor = Color3.fromRGB(0, 225, 0),
 	BlockColor = Color3.fromRGB(28, 29, 34),
 	StrokeColor = Color3.fromRGB(0, 255, 0),
