@@ -375,10 +375,10 @@ Compkiller.Colors = {
 	BlockColor = Color3.fromRGB(28, 29, 34),
 	StrokeColor = Color3.fromRGB(0, 255, 0),
 	SwitchColor = Color3.fromRGB(255, 255, 255),
-	DropColor = Color3.fromRGB(33, 35, 39),
-	MouseEnter = Color3.fromRGB(55, 58, 65),
+	DropColor = Color3.fromRGB(0, 225, 0),
+	MouseEnter = Color3.fromRGB(0, 225, 0),
 	BlockBackground = Color3.fromRGB(0, 255, 0),
-	LineColor = Color3.fromRGB(65, 65, 65),
+	LineColor = Color3.fromRGB(0, 225, 0),
 	HighStrokeColor = Color3.fromRGB(0, 255, 0),
 };
 
