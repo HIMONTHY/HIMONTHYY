@@ -1960,7 +1960,7 @@ function Compkiller:_AddLinkValue(Name , Default , GlobalBlock , LinkValues , re
 		ColorFrame.Name = Compkiller:_RandomString()
 		ColorFrame.Parent = ColorPicker
 		ColorFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		ColorFrame.BackgroundColor3 = Color3.fromRGB(15, 255, 207)
+		ColorFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		ColorFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ColorFrame.BorderSizePixel = 0
 		ColorFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
