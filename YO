@@ -355,7 +355,7 @@ local CurrentCamera: Camera? = cloneref(workspace.CurrentCamera);
 
 local Compkiller = {
 	Version = '2.5',
-	Logo = "rbxassetid://120245531583106",
+	Logo = "rbxassetid://110316309667867",
 	Windows = {},
 	Scale = {
 		Window = UDim2.new(0, 485,0, 565),
