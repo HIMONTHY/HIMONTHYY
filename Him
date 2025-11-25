@@ -6329,7 +6329,7 @@ function Compkiller.new(Config : Window)
 		IsOpen = true,
 		AlwayShowTab = false,
 		THREADS = {},
-		PerformanceMode = false,
+		PerformanceMode = true,
 		Notify = Compkiller.newNotify()
 	};
 
