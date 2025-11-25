@@ -365,7 +365,7 @@ local Compkiller = {
 		TabOpen = 185,
 		TabClose = 85,
 	},
-	PerformanceMode = false,
+	PerformanceMode = true,
 	WindowsNil = {},
 	NilFolder = Instance.new('Folder'),
 	ArcylicParent = CurrentCamera,
