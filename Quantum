@@ -20,7 +20,7 @@ if game.GameId == 3150475059 then -- Football Fusion 2
     end 
 elseif game.GameId == 4931927012 then -- Basketball Legends
     loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/bac6b27f68fb8bc67333e22590684414.lua"))() 
-elseif game.GameId == 8204899140 then -- Volleyball Legends
+elseif game.GameId == 3150475059 then -- Volleyball Legends
     loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/a1dcff7594b329d5b1135c64eb424735.lua"))() 
 elseif game.GameId == 8204899140 then -- BIG Paintball 2
     loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/a1dcff7594b329d5b1135c64eb424735.lua"))() 
