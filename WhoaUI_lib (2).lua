@@ -285,6 +285,7 @@ local pb=new("Frame",{AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,-44,0.
 local avImg=new("ImageLabel",{AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,3,0.5,0),Size=UDim2.new(0,18,0,18),BackgroundColor3=T.B3,Image="",ZIndex=13},pb); cr(4,avImg)
 local pbNameLabel=tl({AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,25,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,BackgroundTransparency=1,Text=LP.DisplayName,TextColor3=T.TX,TextSize=13,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=13},pb)
 task.spawn(function()
+    task.wait(1)
     pcall(function()
         avImg.Image=Players:GetUserThumbnailAsync(LP.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size60x60)
     end)
