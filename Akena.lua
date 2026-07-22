@@ -2606,3 +2606,4 @@ AkenaLib.CreateWindow = function(self, options)
     return WindowObj
 end
 
+return AkenaLib
